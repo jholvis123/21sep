@@ -217,6 +217,14 @@ button{font:inherit;color:inherit;touch-action:manipulation}
   .final-card h3{font-size:39px}.final-card>p:not(.final-to){font-size:13px;line-height:1.72}
   .heart-particles{width:118vw;height:118vw}
 }
+.flower-scene:before{
+  content:"";position:absolute;left:5%;top:18%;width:42vw;height:52vh;pointer-events:none;
+  background:radial-gradient(circle at 45% 45%,rgba(255,143,181,.12),rgba(139,108,255,.05) 38%,transparent 68%);
+  filter:blur(18px)
+}
+@media(max-width:800px){
+  .flower-scene:before{left:-18%;top:8%;width:120vw;height:56vh}
+}
 @media(max-width:380px){
   .scene{padding-left:15px;padding-right:15px}
   .intro h1{font-size:43px}.messages h2{font-size:35px}
