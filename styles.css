@@ -263,8 +263,6 @@ button{font:inherit;color:inherit;touch-action:manipulation}
   opacity:0;font:italic 500 clamp(38px,7vw,92px) var(--serif);color:#fff7fa;text-align:center;
   text-shadow:0 0 40px rgba(255,155,195,.2)
 }
-.fallback{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:30px;text-align:center;background:#08040d}
-.fallback p{max-width:520px;font:500 34px/1.2 var(--serif);color:#fff7fa}
 
 .photo-exit{
   position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:80;
@@ -317,8 +315,7 @@ body.photo-mode .finale h2{transform:translateY(12px)}
 
 
 /* Compatibility mode: full experience without WebGL */
-html[data-render-mode="lite"] .fallback{display:none!important}
-.lite-garden,.lite-petals{position:fixed;inset:0;pointer-events:none}
+html[data-render-mode="lite"] .lite-garden,.lite-petals{position:fixed;inset:0;pointer-events:none}
 .lite-garden{z-index:4;opacity:0;transition:opacity .8s ease}
 .lite-petals{z-index:5;overflow:hidden;opacity:0;transition:opacity .8s ease}
 body[data-scene="flowerScene"] .lite-garden,
