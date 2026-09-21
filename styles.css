@@ -233,3 +233,84 @@ button{font:inherit;color:inherit;touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
+
+/* --- Cinematic V7 enhancements --- */
+.loader{
+  position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 45%,#160a1d 0,#08040d 42%,#030205 100%);
+  transition:opacity .8s ease,visibility .8s ease
+}
+.loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+.loader p{margin:24px 0 14px;font:500 clamp(28px,5vw,54px) var(--serif);color:#fff7fa;text-align:center}
+.loader small{margin-top:10px;color:#8e8495;font-size:10px;letter-spacing:.2em}
+.loader-track{width:min(280px,64vw);height:2px;background:rgba(255,255,255,.09);overflow:hidden}
+.loader-track span{display:block;width:0;height:100%;background:linear-gradient(90deg,#9d83ff,#ff9ab9,#f1d5a7);transition:width .25s ease}
+.loader-mark{position:relative;width:72px;height:72px}
+.loader-mark i{position:absolute;left:50%;top:50%;width:30px;height:18px;border-radius:90% 10% 80% 20%;transform-origin:0 50%;background:linear-gradient(135deg,#ffe7ef,#d76b98 65%,#7a244f)}
+.loader-mark i:nth-child(1){transform:rotate(0deg) translate(4px,-50%)}
+.loader-mark i:nth-child(2){transform:rotate(120deg) translate(4px,-50%)}
+.loader-mark i:nth-child(3){transform:rotate(240deg) translate(4px,-50%)}
+
+.dawn-layer{
+  position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;
+  background:
+    linear-gradient(to top,rgba(255,176,140,.20),transparent 38%),
+    radial-gradient(circle at 50% 112%,rgba(255,220,176,.30),transparent 43%);
+  transition:opacity 1.5s ease
+}
+.bridge-text{
+  position:fixed;inset:0;z-index:45;display:grid;place-items:center;pointer-events:none;
+  opacity:0;font:italic 500 clamp(38px,7vw,92px) var(--serif);color:#fff7fa;text-align:center;
+  text-shadow:0 0 40px rgba(255,155,195,.2)
+}
+.fallback{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:30px;text-align:center;background:#08040d}
+.fallback p{max-width:520px;font:500 34px/1.2 var(--serif);color:#fff7fa}
+
+.photo-exit{
+  position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:80;
+  display:none;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:10px 15px;
+  background:rgba(7,4,12,.55);backdrop-filter:blur(18px);font-size:11px
+}
+body.photo-mode .topbar,
+body.photo-mode .progress,
+body.photo-mode .final-actions,
+body.photo-mode .eyebrow{opacity:0!important;pointer-events:none!important}
+body.photo-mode .photo-exit{display:block}
+body.photo-mode .final-card{background:rgba(12,8,18,.2);border-color:rgba(255,255,255,.08)}
+body.photo-mode .finale h2{transform:translateY(12px)}
+
+.letter-modal{
+  position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:24px;
+  background:rgba(3,2,6,.78);backdrop-filter:blur(18px);opacity:0;visibility:hidden;pointer-events:none
+}
+.letter-modal.is-open{opacity:1;visibility:visible;pointer-events:auto}
+.letter-sheet{
+  position:relative;width:min(720px,94vw);max-height:82dvh;overflow:auto;
+  padding:clamp(30px,6vw,66px);border-radius:34px;border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(155deg,rgba(255,246,239,.12),rgba(255,255,255,.035));
+  box-shadow:0 35px 120px rgba(0,0,0,.5)
+}
+.letter-sheet h2{margin:0 0 24px;font:500 clamp(40px,6vw,70px)/.96 var(--serif)}
+.letter-sheet>p:not(.eyebrow){color:#d6cbd8;font-size:14px;line-height:1.9}
+.letter-close{
+  position:absolute;right:20px;top:20px;border:1px solid var(--line);border-radius:999px;
+  background:rgba(0,0,0,.2);padding:8px 12px;font-size:10px;cursor:pointer
+}
+.final-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.lis-petals{position:absolute;inset:0;pointer-events:none;z-index:-1}
+.lis-petals i{
+  position:absolute;width:10px;height:18px;border-radius:90% 10% 80% 20%;
+  background:linear-gradient(145deg,#ffd5e1,#b74274);box-shadow:0 0 12px rgba(255,132,184,.25)
+}
+
+.constellation svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.35}
+.constellation svg line{stroke:rgba(216,198,255,.28);stroke-width:.12;stroke-dasharray:.6 1.5}
+
+@media(max-width:800px){
+  #photoBtn{display:none}
+  .loader p{font-size:34px;max-width:85vw}
+  .letter-sheet{padding:50px 23px 30px;border-radius:28px}
+  .letter-sheet h2{font-size:42px}
+  .letter-sheet>p:not(.eyebrow){font-size:13px;line-height:1.75}
+  .final-actions{width:100%}
+}
