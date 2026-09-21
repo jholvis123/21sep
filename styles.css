@@ -307,7 +307,7 @@ body.photo-mode .finale h2{transform:translateY(12px)}
 .constellation svg line{stroke:rgba(216,198,255,.28);stroke-width:.12;stroke-dasharray:.6 1.5}
 
 @media(max-width:800px){
-  #photoBtn{display:none}
+  #photoBtn{display:inline-flex}
   .loader p{font-size:34px;max-width:85vw}
   .letter-sheet{padding:50px 23px 30px;border-radius:28px}
   .letter-sheet h2{font-size:42px}
