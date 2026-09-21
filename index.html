@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#05030b" />
+  <meta name="description" content="Una experiencia especial creada para Lis este 21 de septiembre." />
+  <title>Para Lis · 21 de Septiembre</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <canvas id="space" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">21 · 09</div>
+    <div class="actions">
+      <button id="soundBtn" class="icon-btn" aria-label="Activar o desactivar sonido" title="Sonido">
+        <span class="sound-dot"></span><span id="soundLabel">Sonido</span>
+      </button>
+      <button id="restartBtn" class="icon-btn" aria-label="Reiniciar experiencia" title="Reiniciar">Reiniciar</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="intro" class="scene scene--active intro">
+      <div class="intro-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="eyebrow">Una pequeña pausa en el universo</p>
+      <h1>Hay momentos que<br><em>merecen algo diferente.</em></h1>
+      <p class="lead">Hoy quise convertir unas palabras en una experiencia.</p>
+      <button id="startBtn" class="primary-btn"><span>Comenzar experiencia</span><b>→</b></button>
+      <p class="microcopy">Recomendado con sonido · Audífonos opcionales</p>
+    </section>
+
+    <section id="countdown" class="scene countdown" aria-live="polite">
+      <p class="eyebrow">Prepárate</p>
+      <div id="countNumber" class="count-number">3</div>
+      <p id="countCaption" class="count-caption">para una nueva experiencia</p>
+    </section>
+
+    <section id="journey" class="scene journey">
+      <div class="journey-copy">
+        <p id="journeyKicker" class="eyebrow">Entre millones de luces</p>
+        <h2 id="journeyPhrase">A veces una persona llega…</h2>
+      </div>
+      <div id="speedLines" class="speed-lines" aria-hidden="true"></div>
+    </section>
+
+    <section id="flowerScene" class="scene flower-scene">
+      <div class="flower-stage">
+        <div class="flower-glow" aria-hidden="true"></div>
+        <div id="mainFlower" class="flower flower--hero" role="img" aria-label="Flor especial para Lis"></div>
+      </div>
+      <div class="flower-copy">
+        <p class="eyebrow">Una flor que no se marchita</p>
+        <h2>Fue creada para recordarte algo.</h2>
+        <p>Nunca olvides lo valiosa que eres, todo lo que puedes construir y la luz que puedes dejar en los días de otras personas.</p>
+        <button id="discoverBtn" class="ghost-btn">Descubrir mensajes <span>↓</span></button>
+      </div>
+    </section>
+
+    <section id="messages" class="scene messages">
+      <div class="messages-head">
+        <p class="eyebrow">Toca cada luz</p>
+        <h2>Ocho pequeñas razones<br>para recordarte lo bonito.</h2>
+      </div>
+      <div id="constellation" class="constellation" aria-label="Mensajes especiales"></div>
+      <div id="messageModal" class="message-modal" aria-live="polite">
+        <span id="messageNumber">01</span>
+        <h3 id="messageTitle">Alegría</h3>
+        <p id="messageText">Que nunca te falten razones para sonreír.</p>
+      </div>
+      <button id="finalBtn" class="primary-btn primary-btn--final" disabled><span>Continuar</span><b>→</b></button>
+    </section>
+
+    <section id="finale" class="scene finale">
+      <div id="heartParticles" class="heart-particles" aria-hidden="true"></div>
+      <p class="eyebrow">Y entre millones de personas…</p>
+      <h2>hoy quería recordarte<br>que tú también eres especial.</h2>
+      <div class="final-card">
+        <div class="final-flower flower flower--small" aria-hidden="true"></div>
+        <p class="final-to">Para Lis</p>
+        <h3>Feliz 21 de septiembre.</h3>
+        <p>Que nunca te falten motivos para sonreír, sueños por cumplir y personas que sepan valorar la increíble persona que eres.</p>
+        <div class="signature"><span>Con cariño,</span><strong>Yhon</strong></div>
+      </div>
+      <button id="replayBtn" class="ghost-btn">Volver a vivirlo</button>
+    </section>
+  </main>
+
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.180.0/build/three.module.js"
+    }
+  }
+  </script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
