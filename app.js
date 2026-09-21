@@ -17,13 +17,13 @@ async function showScene(id){
   if(id===currentScene)return;
   const old=$("#"+currentScene),next=$("#"+id);
   if(old){
-    gsap.to(old,{autoAlpha:0,duration:reduced?.1:2.4,ease:"power2.inOut"});
-    await wait(reduced?80:1800);
+    gsap.to(old,{autoAlpha:0,duration:reduced?.1:1.5,ease:"power2.inOut"});
+    await wait(reduced?80:1200);
     old.classList.remove("scene--active");
   }
   next.classList.add("scene--active");
   gsap.set(next,{autoAlpha:0});
-  gsap.to(next,{autoAlpha:1,duration:reduced?.1:2.5,ease:"power2.out"});
+  gsap.to(next,{autoAlpha:1,duration:reduced?.1:1.5,ease:"power2.out"});
   currentScene=id;
   progress.style.width=Math.max(8,(sceneStep(id)/5)*100)+"%";
   petalIntensity=id==="finale"?2.8:id==="flowerScene"?2.2:id==="messages"?.9:0;
@@ -211,7 +211,7 @@ function updateFloralScene(id){
     gsap.killTweensOf(floralRoot.position);gsap.killTweensOf(floralRoot.scale);
     floralRoot.position.set(mobile?0:-1.2,mobile?1.15:.2,0);
     floralRoot.scale.setScalar(.15);
-    gsap.to(floralRoot.scale,{x:mobile?.9:1.12,y:mobile?.9:1.12,z:mobile?.9:1.12,duration:reduced?.1:4.2,ease:"power3.out"});
+    gsap.to(floralRoot.scale,{x:mobile?.9:1.12,y:mobile?.9:1.12,z:mobile?.9:1.12,duration:reduced?.1:1.5,ease:"power3.out"});
     gsap.to(floralRoot.rotation,{y:.08,duration:5,ease:"sine.inOut"});
   }else if(id==="messages"){
     floralRoot.visible=false;fallingPetals.visible=true;
@@ -240,13 +240,13 @@ $("#startBtn").onclick=async()=>{
   const n=$("#countNumber");
   for(const item of ["3","2","1"]){
     n.textContent=item;
-    gsap.fromTo(n,{autoAlpha:0,scale:.55,filter:"blur(18px)"},{autoAlpha:1,scale:1,duration:1.05,ease:"power3.out"});
-    gsap.to(n,{autoAlpha:0,scale:1.24,filter:"blur(10px)",delay:1.85,duration:.85,ease:"power2.in"});
+    gsap.fromTo(n,{autoAlpha:0,scale:.55,filter:"blur(18px)"},{autoAlpha:1,scale:1,duration:.65,ease:"power3.out"});
+    gsap.to(n,{autoAlpha:0,scale:1.24,filter:"blur(10px)",delay:.7,duration:.55,ease:"power2.in"});
     tone(230+Number(item)*55,.25,.018);
-    await wait(reduced?180:3100);
+    await wait(reduced?180:1500);
   }
   n.textContent="✦";gsap.fromTo(n,{autoAlpha:0,scale:.3},{autoAlpha:1,scale:.7,duration:1.2,ease:"power3.out"});
-  tone(659,1.4,.022);await wait(reduced?150:1800);startJourney();
+  tone(659,1.4,.022);await wait(reduced?150:900);startJourney();
 };
 
 async function startJourney(){
@@ -259,10 +259,10 @@ async function startJourney(){
   ];
   for(const [k,p] of phrases){
     $("#journeyKicker").textContent=k;$("#journeyPhrase").textContent=p;
-    gsap.fromTo($("#journeyPhrase"),{autoAlpha:0,y:32,filter:"blur(16px)"},{autoAlpha:1,y:0,filter:"blur(0)",duration:1.45,ease:"power3.out"});
-    tone(293.66,2,.006);await wait(reduced?220:4300);
-    gsap.to($("#journeyPhrase"),{autoAlpha:0,y:-18,filter:"blur(10px)",duration:1.35,ease:"power2.in"});
-    await wait(reduced?80:1100);
+    gsap.fromTo($("#journeyPhrase"),{autoAlpha:0,y:32,filter:"blur(16px)"},{autoAlpha:1,y:0,filter:"blur(0)",duration:1.0,ease:"power3.out"});
+    tone(293.66,2,.006);await wait(reduced?220:1800);
+    gsap.to($("#journeyPhrase"),{autoAlpha:0,y:-18,filter:"blur(10px)",duration:.7,ease:"power2.in"});
+    await wait(reduced?80:500);
   }
   warp=0;$("#speedLines").style.opacity="0";await showScene("flowerScene");chord();
 }
@@ -309,7 +309,7 @@ function createHeart(){
     p.style.left=(50+x*2.35)+"%";p.style.top=(48-y*2.35)+"%";p.style.animationDelay=Math.random()*2+"s";
     p.style.transform=`scale(${.5+Math.random()*1.8})`;box.appendChild(p);
   }
-  gsap.fromTo(box,{autoAlpha:0,scale:.7},{autoAlpha:.34,scale:1,duration:3.8,ease:"power3.out"});
+  gsap.fromTo(box,{autoAlpha:0,scale:.7},{autoAlpha:.34,scale:1,duration:1.5,ease:"power3.out"});
 }
 
 let mx=0,my=0;
