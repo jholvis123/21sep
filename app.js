@@ -403,8 +403,8 @@ function setupMessages(){
   messages.forEach((m,i)=>{
     if(i>0){
       const line=document.createElementNS(ns,"line");
-      line.setAttribute("x1",spots[i-1][0]);line.setAttribute("y1",spots[i-1][1]);
-      line.setAttribute("x2",spots[i][0]);line.setAttribute("y2",spots[i][1]);svg.appendChild(line);
+      line.setAttribute("x1",spots[i-1][0]+"%");line.setAttribute("y1",spots[i-1][1]+"%");
+      line.setAttribute("x2",spots[i][0]+"%");line.setAttribute("y2",spots[i][1]+"%");svg.appendChild(line);
     }
     const b=document.createElement("button");b.className="message-node";b.dataset.label=m[0];
     b.style.left=spots[i][0]+"%";b.style.top=spots[i][1]+"%";
