@@ -2,38 +2,42 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#05030b" />
   <meta name="description" content="Una experiencia especial creada para Lis este 21 de septiembre." />
+  <meta property="og:title" content="Para Lis · 21 de Septiembre" />
+  <meta property="og:description" content="Una pequeña experiencia entre estrellas, flores y palabras." />
   <title>Para Lis · 21 de Septiembre</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <canvas id="space" aria-hidden="true"></canvas>
+  <div id="aurora" class="aurora" aria-hidden="true"></div>
   <div class="vignette" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
+  <div id="petalRain" class="petal-rain" aria-hidden="true"></div>
 
   <header class="topbar">
-    <div class="brand">21 · 09</div>
+    <div class="brand"><span>21</span><i></i><span>09</span></div>
     <div class="actions">
-      <button id="soundBtn" class="icon-btn" aria-label="Activar o desactivar sonido" title="Sonido">
-        <span class="sound-dot"></span><span id="soundLabel">Sonido</span>
-      </button>
-      <button id="restartBtn" class="icon-btn" aria-label="Reiniciar experiencia" title="Reiniciar">Reiniciar</button>
+      <button id="soundBtn" class="icon-btn" aria-label="Activar o desactivar sonido"><span class="sound-dot"></span><span id="soundLabel">Sonido</span></button>
+      <button id="restartBtn" class="icon-btn restart-desktop" aria-label="Reiniciar experiencia">Reiniciar</button>
     </div>
   </header>
 
   <main>
     <section id="intro" class="scene scene--active intro">
-      <div class="intro-orbit" aria-hidden="true"><i></i><i></i><i></i></div>
-      <p class="eyebrow">Una pequeña pausa en el universo</p>
+      <div class="intro-orbit orbit-a" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="intro-orbit orbit-b" aria-hidden="true"></div>
+      <div class="hero-bloom" aria-hidden="true"></div>
+      <p class="eyebrow">21 de septiembre · para Lis</p>
       <h1>Hay momentos que<br><em>merecen algo diferente.</em></h1>
-      <p class="lead">Hoy quise convertir unas palabras en una experiencia.</p>
+      <p class="lead">No es solo una página. Es una pequeña pausa en el universo, creada para ti.</p>
       <button id="startBtn" class="primary-btn"><span>Comenzar experiencia</span><b>→</b></button>
-      <p class="microcopy">Recomendado con sonido · Audífonos opcionales</p>
+      <p class="microcopy">Mejor con sonido · también funciona sin él</p>
     </section>
 
     <section id="countdown" class="scene countdown" aria-live="polite">
@@ -52,8 +56,10 @@
 
     <section id="flowerScene" class="scene flower-scene">
       <div class="flower-stage">
-        <div class="flower-glow" aria-hidden="true"></div>
+        <div class="flower-halo halo-1" aria-hidden="true"></div>
+        <div class="flower-halo halo-2" aria-hidden="true"></div>
         <div id="mainFlower" class="flower flower--hero" role="img" aria-label="Flor especial para Lis"></div>
+        <div class="stem" aria-hidden="true"><i></i><b></b></div>
       </div>
       <div class="flower-copy">
         <p class="eyebrow">Una flor que no se marchita</p>
@@ -67,6 +73,7 @@
       <div class="messages-head">
         <p class="eyebrow">Toca cada luz</p>
         <h2>Ocho pequeñas razones<br>para recordarte lo bonito.</h2>
+        <p class="mobile-hint">Toca los puntos brillantes para descubrirlos.</p>
       </div>
       <div id="constellation" class="constellation" aria-label="Mensajes especiales"></div>
       <div id="messageModal" class="message-modal" aria-live="polite">
@@ -79,6 +86,7 @@
 
     <section id="finale" class="scene finale">
       <div id="heartParticles" class="heart-particles" aria-hidden="true"></div>
+      <div class="final-stars" aria-hidden="true"></div>
       <p class="eyebrow">Y entre millones de personas…</p>
       <h2>hoy quería recordarte<br>que tú también eres especial.</h2>
       <div class="final-card">
@@ -95,11 +103,7 @@
   <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
 
   <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.180.0/build/three.module.js"
-    }
-  }
+  {"imports":{"three":"https://unpkg.com/three@0.180.0/build/three.module.js"}}
   </script>
   <script type="module" src="./app.js"></script>
 </body>
