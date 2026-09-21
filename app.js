@@ -19,9 +19,7 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const haptic=(ms=10)=>{try{if(navigator.vibrate)navigator.vibrate(ms)}catch{}};
 
 window.addEventListener("error",e=>{
-  if(/webgl|renderer|context/i.test(String(e.message||""))){
-    const fb=$("#fallback");if(fb){fb.hidden=false}
-  }
+  console.warn("Runtime warning:",e.message||e.error||e);
 });
 
 function updateLoader(value){
