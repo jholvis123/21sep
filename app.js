@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { BokehPass } from "three/addons/postprocessing/BokehPass.js";
 import { gsap } from "https://cdn.jsdelivr.net/npm/gsap@3.13.0/+esm";
 
 const $=s=>document.querySelector(s);
@@ -9,10 +10,51 @@ const scenes=[...document.querySelectorAll(".scene")];
 const progress=$("#progressBar");
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
 const mobile=matchMedia("(max-width: 800px)").matches;
+const deviceMemory=navigator.deviceMemory||4;
+const cpuCores=navigator.hardwareConcurrency||4;
+let quality=(mobile||deviceMemory<4||cpuCores<4)?.68:1;
 let audioEnabled=false,audioCtx=null,warp=0,currentScene="intro",petalIntensity=0;
+let lowFpsMode=false,frameCounter=0,fpsClock=performance.now();
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const haptic=(ms=10)=>{try{if(navigator.vibrate)navigator.vibrate(ms)}catch{}};
+
+window.addEventListener("error",e=>{
+  if(/webgl|renderer|context/i.test(String(e.message||""))){
+    const fb=$("#fallback");if(fb){fb.hidden=false}
+  }
+});
+
+function updateLoader(value){
+  const bar=$("#loaderBar"),pct=$("#loaderPercent");
+  if(bar)bar.style.width=value+"%";
+  if(pct)pct.textContent=Math.round(value)+"%";
+}
+async function finishLoader(){
+  let p=0;
+  const timer=setInterval(()=>{p=Math.min(92,p+7+Math.random()*8);updateLoader(p)},90);
+  try{if(document.fonts?.ready)await document.fonts.ready}catch{}
+  await wait(650);clearInterval(timer);updateLoader(100);
+  await wait(280);$("#loader")?.classList.add("is-hidden");
+}
 
 function sceneStep(id){return {intro:0,countdown:1,journey:2,flowerScene:3,messages:4,finale:5}[id]??0}
+async function showBridge(text){
+  const el=$("#bridgeText");if(!el)return;
+  el.textContent=text;
+  gsap.fromTo(el,{autoAlpha:0,scale:.96,filter:"blur(12px)"},{autoAlpha:1,scale:1,filter:"blur(0)",duration:.55,ease:"power2.out"});
+  await wait(650);
+  gsap.to(el,{autoAlpha:0,scale:1.02,filter:"blur(10px)",duration:.45,ease:"power2.in"});
+  await wait(420);
+}
+
+function setAtmosphere(id){
+  const dawn=$("#dawnLayer");
+  const opacity=id==="finale"?.72:id==="flowerScene"?.25:id==="messages"?.38:0;
+  if(dawn)gsap.to(dawn,{opacity,duration:1.5,ease:"sine.inOut"});
+  const exposure=id==="finale"?1.22:id==="flowerScene"?1.12:1.06;
+  gsap.to(renderer,{toneMappingExposure:exposure,duration:1.5,ease:"sine.inOut"});
+}
+
 async function showScene(id){
   if(id===currentScene)return;
   const old=$("#"+currentScene),next=$("#"+id);
@@ -28,6 +70,8 @@ async function showScene(id){
   progress.style.width=Math.max(8,(sceneStep(id)/5)*100)+"%";
   petalIntensity=id==="finale"?2.8:id==="flowerScene"?2.2:id==="messages"?.9:0;
   updateFloralScene(id);
+  setAtmosphere(id);
+  if(id==="flowerScene")chord();
 }
 
 function tone(freq=220,duration=.25,volume=.022){
@@ -62,8 +106,13 @@ camera.position.set(0,0,8);
 
 const composer=new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene,camera));
-const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),mobile?.58:.82,.9,.82);
+const bloom=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),mobile?.48:.78,.9,.82);
 composer.addPass(bloom);
+let bokeh=null;
+if(!mobile&&quality>.8){
+  bokeh=new BokehPass(scene,camera,{focus:7.2,aperture:.00007,maxblur:.0055,width:innerWidth,height:innerHeight});
+  composer.addPass(bokeh);
+}
 
 const ambient=new THREE.HemisphereLight(0xffd8e5,0x12091c,1.15);
 scene.add(ambient);
@@ -112,6 +161,11 @@ const petalMaterials=[
 const leafMaterial=new THREE.MeshStandardMaterial({color:0x233a21,roughness:.8,side:THREE.DoubleSide});
 const stemMaterial=new THREE.MeshStandardMaterial({color:0x31472a,roughness:.86});
 const centerMaterial=new THREE.MeshPhysicalMaterial({color:0xc67b72,roughness:.7});
+const dewMaterial=new THREE.MeshPhysicalMaterial({
+  color:0xffffff,roughness:.04,metalness:0,transmission:.9,transparent:true,opacity:.72,
+  ior:1.33,thickness:.08,clearcoat:1,clearcoatRoughness:.04
+});
+const yellowCenter=new THREE.MeshStandardMaterial({color:0xe2b95b,roughness:.75});
 
 function createPetalMesh(material,scaleX=1,scaleY=1){
   const geo=new THREE.SphereGeometry(.42,16,10);
@@ -139,6 +193,39 @@ function createRose({radius=1,colorIndex=0,petals=34}={}){
   core.position.y=.18;g.add(core);
   return g;
 }
+function addDewDrops(group,count=3){
+  for(let i=0;i<count;i++){
+    const d=new THREE.Mesh(new THREE.SphereGeometry(.045+Math.random()*.025,10,8),dewMaterial);
+    const a=Math.random()*Math.PI*2,r=.22+Math.random()*.42;
+    d.position.set(Math.cos(a)*r,.06+Math.random()*.18,Math.sin(a)*r);
+    d.scale.y=.72;group.add(d);
+  }
+}
+function createTulip(colorIndex=0){
+  const g=new THREE.Group();
+  for(let i=0;i<6;i++){
+    const p=createPetalMesh(petalMaterials[(colorIndex+i%2)%petalMaterials.length],.82,.92);
+    const a=i*Math.PI/3;
+    p.position.set(Math.cos(a)*.22,.13,Math.sin(a)*.22);
+    p.rotation.set(.85,-a+Math.PI/2,Math.sin(a)*.08);
+    p.scale.multiplyScalar(.7);g.add(p);
+  }
+  addDewDrops(g,2);return g;
+}
+function createDaisy(){
+  const g=new THREE.Group();
+  for(let i=0;i<12;i++){
+    const p=createPetalMesh(petalMaterials[3],.65,.9),a=i*Math.PI/6;
+    p.position.set(Math.cos(a)*.34,.04,Math.sin(a)*.34);
+    p.rotation.set(1.2,-a+Math.PI/2,0);p.scale.multiplyScalar(.55);g.add(p);
+  }
+  const core=new THREE.Mesh(new THREE.SphereGeometry(.16,14,10),yellowCenter);core.position.y=.08;g.add(core);
+  return g;
+}
+function createPeony(colorIndex=1){
+  const g=createRose({radius:1.05,colorIndex,petals:mobile?36:54});
+  g.scale.set(1.12,.9,1.12);addDewDrops(g,4);return g;
+}
 function createStem(height=2.6){
   const g=new THREE.Group();
   const stem=new THREE.Mesh(new THREE.CylinderGeometry(.035,.055,height,10),stemMaterial);
@@ -153,6 +240,7 @@ function createStem(height=2.6){
 function addFlower(x,y,z,s,colorIndex,rot=0){
   const wrap=new THREE.Group();
   const rose=createRose({radius:1,colorIndex,petals:mobile?26:38});
+  addDewDrops(rose,mobile?2:4);
   rose.scale.setScalar(s);rose.rotation.y=rot;wrap.add(rose);
   const stem=createStem(2.4*s);stem.position.y=-.3*s;wrap.add(stem);
   wrap.position.set(x,y,z);
@@ -172,6 +260,19 @@ const flower10=addFlower(-1.55,1.65,-2.2,.52,2,-.65);
 const flower11=addFlower(3.2,-.75,-2.2,.52,0,.25);
 const flower12=addFlower(-3.25,-.85,-2.25,.5,1,-.25);
 
+function addMixedFlower(kind,x,y,z,s,color=0,rot=0){
+  const wrap=new THREE.Group();
+  const bloom=kind==="tulip"?createTulip(color):kind==="daisy"?createDaisy():createPeony(color);
+  bloom.scale.setScalar(s);bloom.rotation.y=rot;wrap.add(bloom);
+  const stem=createStem(2.2*s);stem.position.y=-.26*s;wrap.add(stem);
+  wrap.position.set(x,y,z);floralRoot.add(wrap);return wrap;
+}
+addMixedFlower("peony",-.15,.3,-.4,.9,1,.1);
+addMixedFlower("tulip",2.25,.95,-1.25,.78,2,.4);
+addMixedFlower("tulip",-2.45,1.05,-1.35,.72,0,-.35);
+addMixedFlower("daisy",1.25,1.65,-1.9,.7,3,.2);
+addMixedFlower("daisy",-1.05,-.95,-1.25,.72,3,-.2);
+
 for(let i=0;i<(mobile?18:36);i++){
   const bud=createRose({radius:.7,colorIndex:i%4,petals:mobile?18:24});
   const a=(i/(mobile?18:36))*Math.PI*2;
@@ -184,7 +285,7 @@ for(let i=0;i<(mobile?18:36);i++){
 const fallingPetals=new THREE.Group();
 scene.add(fallingPetals);
 const petals=[];
-const petalCount=mobile?90:180;
+const petalCount=Math.round((mobile?72:160)*quality);
 for(let i=0;i<petalCount;i++){
   const p=createPetalMesh(petalMaterials[i%3],.35+Math.random()*.3,.32+Math.random()*.4);
   p.scale.multiplyScalar(.18+Math.random()*.22);
@@ -205,6 +306,16 @@ function resetPetal(p,top=true){
   p.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
 }
 
+function bloomBouquet(){
+  let order=0;
+  floralRoot.traverse(o=>{
+    if(!o.isMesh||!petalMaterials.includes(o.material)||o.userData.bloomed)return;
+    o.userData.bloomed=true;
+    const target=o.scale.clone();
+    o.scale.multiplyScalar(.18);
+    gsap.to(o.scale,{x:target.x,y:target.y,z:target.z,duration:.8+Math.random()*.7,delay:Math.min(.65,order++*.012),ease:"back.out(1.35)"});
+  });
+}
 function updateFloralScene(id){
   if(id==="flowerScene"){
     floralRoot.visible=true;fallingPetals.visible=true;
@@ -213,6 +324,7 @@ function updateFloralScene(id){
     floralRoot.scale.setScalar(.15);
     gsap.to(floralRoot.scale,{x:mobile?.9:1.12,y:mobile?.9:1.12,z:mobile?.9:1.12,duration:reduced?.1:1.5,ease:"power3.out"});
     gsap.to(floralRoot.rotation,{y:.08,duration:5,ease:"sine.inOut"});
+    setTimeout(bloomBouquet,120);
   }else if(id==="messages"){
     floralRoot.visible=false;fallingPetals.visible=true;
   }else if(id==="finale"){
@@ -267,7 +379,10 @@ async function startJourney(){
   warp=0;$("#speedLines").style.opacity="0";await showScene("flowerScene");chord();
 }
 
-$("#discoverBtn").onclick=()=>showScene("messages").then(setupMessages);
+$("#discoverBtn").onclick=async()=>{
+  await showBridge("Mira un poco más cerca.");
+  await showScene("messages");setupMessages();
+};
 
 const messages=[
   ["Tu sonrisa","Hay sonrisas capaces de cambiar el tono de un día entero. La tuya merece aparecer más veces."],
@@ -283,7 +398,14 @@ let seen=new Set();
 function setupMessages(){
   const box=$("#constellation");if(box.children.length)return;
   const spots=mobile?[[12,18],[41,8],[72,21],[20,41],[58,38],[82,48],[37,60],[69,68]]:[[18,62],[31,47],[47,66],[61,43],[77,58],[70,76],[40,80],[84,34]];
+  const ns="http://www.w3.org/2000/svg",svg=document.createElementNS(ns,"svg");
+  box.appendChild(svg);
   messages.forEach((m,i)=>{
+    if(i>0){
+      const line=document.createElementNS(ns,"line");
+      line.setAttribute("x1",spots[i-1][0]);line.setAttribute("y1",spots[i-1][1]);
+      line.setAttribute("x2",spots[i][0]);line.setAttribute("y2",spots[i][1]);svg.appendChild(line);
+    }
     const b=document.createElement("button");b.className="message-node";b.dataset.label=m[0];
     b.style.left=spots[i][0]+"%";b.style.top=spots[i][1]+"%";
     b.setAttribute("aria-label","Abrir mensaje: "+m[0]);b.onclick=()=>openMessage(i,b);box.appendChild(b);
@@ -294,13 +416,46 @@ function openMessage(i,node){
   $("#messageNumber").textContent=String(i+1).padStart(2,"0");$("#messageTitle").textContent=messages[i][0];$("#messageText").textContent=messages[i][1];
   $("#messageModal").classList.add("show");
   gsap.fromTo($("#messageModal"),{autoAlpha:0,y:16},{autoAlpha:1,y:0,duration:1,ease:"power3.out"});
-  tone(430+i*27,.5,.012);
+  tone(430+i*27,.5,.012);haptic(12);
   if(seen.size>=4)$("#finalBtn").disabled=false;
 }
 $("#finalBtn").onclick=async()=>{
-  await showScene("finale");createHeart();chord();setTimeout(()=>tone(659,2,.01),500);
+  haptic(22);
+  await showBridge("Todavía falta algo.");
+  await showScene("finale");
+  createLisPetals();chord();
+  setTimeout(()=>createHeart(),1450);
+  setTimeout(()=>tone(659,2,.01),500);
 };
 
+function createLisPetals(){
+  const box=$("#lisPetals");box.innerHTML="";
+  const glyphs={
+    L:["1000","1000","1000","1000","1111"],
+    I:["111","010","010","010","111"],
+    S:["1111","1000","1111","0001","1111"]
+  };
+  let offset=26;
+  ["L","I","S"].forEach(letter=>{
+    const rows=glyphs[letter],w=rows[0].length;
+    rows.forEach((row,y)=>[...row].forEach((v,x)=>{
+      if(v!=="1")return;
+      const p=document.createElement("i");box.appendChild(p);
+      const tx=offset+x*2.5,ty=29+y*5.2;
+      gsap.set(p,{left:(Math.random()*100)+"%",top:(Math.random()*100)+"%",rotation:Math.random()*300,scale:.35+Math.random()*.7,opacity:0});
+      gsap.to(p,{left:tx+"%",top:ty+"%",rotation:720*Math.random(),opacity:.86,duration:1.35,ease:"power3.out"});
+    }));
+    offset+=(w*2.5)+8;
+  });
+  setTimeout(()=>morphLisToHeart(),1500);
+}
+function morphLisToHeart(){
+  const ps=[...$("#lisPetals").children],n=ps.length;
+  ps.forEach((p,i)=>{
+    const t=(i/n)*Math.PI*2,x=16*Math.pow(Math.sin(t),3),y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+    gsap.to(p,{left:(50+x*1.7)+"%",top:(48-y*1.7)+"%",rotation:"+=360",duration:1.35,ease:"power2.inOut"});
+  });
+}
 function createHeart(){
   const box=$("#heartParticles");box.innerHTML="";
   for(let i=0;i<(mobile?125:210);i++){
@@ -315,6 +470,9 @@ function createHeart(){
 let mx=0,my=0;
 addEventListener("pointermove",e=>{mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5},{passive:true});
 addEventListener("touchmove",e=>{const t=e.touches[0];if(t){mx=t.clientX/innerWidth-.5;my=t.clientY/innerHeight-.5}},{passive:true});
+addEventListener("deviceorientation",e=>{
+  if(e.gamma!=null){mx=Math.max(-.5,Math.min(.5,e.gamma/75));my=Math.max(-.5,Math.min(.5,(e.beta-40)/100))}
+},{passive:true});
 addEventListener("resize",()=>{
   camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();
   renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<800?1.35:1.8));
@@ -325,6 +483,8 @@ let last=performance.now(),time=0;
 function animate(now){
   const dt=Math.min((now-last)/1000,.04);last=now;time+=dt;
   stars.rotation.z+=dt*.006;roseDust.rotation.z-=dt*.009;blueDust.rotation.y+=dt*.005;nebula.rotation.z+=dt*.0015;
+  key.position.x=4+Math.sin(time*.22)*1.5;key.position.y=6+Math.cos(time*.18)*.7;
+  warm.position.x=3+Math.cos(time*.2)*1.2;warm.intensity=12+Math.sin(time*.35)*2.2;
   camera.position.x+=(mx*.58-camera.position.x)*.018;camera.position.y+=(-my*.34-camera.position.y)*.018;
   camera.position.z+=((warp?1.7:8)-camera.position.z)*.025;
   stars.position.z+=warp?dt*7.5:dt*.045;if(stars.position.z>10)stars.position.z=0;
@@ -349,6 +509,18 @@ function animate(now){
       p.visible=Math.random()<Math.min(1,.82+petalIntensity*.12);
     });
   }
+  frameCounter++;
+  if(now-fpsClock>3200){
+    const fps=frameCounter/((now-fpsClock)/1000);
+    if(fps<42&&!lowFpsMode){
+      lowFpsMode=true;quality*=.72;
+      renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.05:1.35));
+      bloom.strength*=.72;
+      petals.forEach((p,i)=>{if(i%2)p.visible=false});
+      if(bokeh)bokeh.enabled=false;
+    }
+    frameCounter=0;fpsClock=now;
+  }
   composer.render();
   requestAnimationFrame(animate);
 }
@@ -359,3 +531,31 @@ gsap.from(".intro .eyebrow",{autoAlpha:0,y:10,duration:1.4,delay:.35,ease:"power
 gsap.from(".intro h1",{autoAlpha:0,y:24,filter:"blur(12px)",duration:2.2,delay:.55,ease:"power3.out"});
 gsap.from(".intro .lead",{autoAlpha:0,y:15,duration:1.7,delay:1.15,ease:"power2.out"});
 gsap.from(".intro .primary-btn",{autoAlpha:0,y:12,duration:1.5,delay:1.55,ease:"power2.out"});
+
+
+function setPhotoMode(enabled){
+  document.body.classList.toggle("photo-mode",enabled);
+  haptic(8);
+}
+$("#photoBtn")?.addEventListener("click",()=>setPhotoMode(true));
+$("#photoExitBtn")?.addEventListener("click",()=>setPhotoMode(false));
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    setPhotoMode(false);
+    $("#letterModal")?.classList.remove("is-open");
+    $("#letterModal")?.setAttribute("aria-hidden","true");
+  }
+});
+
+$("#letterBtn")?.addEventListener("click",()=>{
+  const modal=$("#letterModal");modal.classList.add("is-open");modal.setAttribute("aria-hidden","false");haptic(18);
+  gsap.fromTo(".letter-sheet",{autoAlpha:0,y:24,scale:.97},{autoAlpha:1,y:0,scale:1,duration:.7,ease:"power3.out"});
+});
+$("#closeLetterBtn")?.addEventListener("click",()=>{
+  const modal=$("#letterModal");
+  gsap.to(".letter-sheet",{autoAlpha:0,y:16,duration:.35,ease:"power2.in",onComplete:()=>{
+    modal.classList.remove("is-open");modal.setAttribute("aria-hidden","true");
+  }});
+});
+
+finishLoader();
