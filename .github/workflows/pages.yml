@@ -1,16 +1,10 @@
 name: Publish static site
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
 
 permissions:
   contents: write
-
-concurrency:
-  group: "publish-21sep"
-  cancel-in-progress: true
 
 jobs:
   publish:
