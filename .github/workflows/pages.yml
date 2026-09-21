@@ -23,7 +23,7 @@ jobs:
         run: |
           rm -rf /tmp/site
           mkdir -p /tmp/site/docs
-          cp index.html styles.css app.js /tmp/site/docs/
+          cp index.html styles.css app.js boot.js lite.js /tmp/site/docs/
           touch /tmp/site/docs/.nojekyll
 
       - name: Publish gh-pages/docs
